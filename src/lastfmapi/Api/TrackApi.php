@@ -526,9 +526,14 @@ class TrackApi extends BaseApi {
 	public function scrobble($methodVars) {
 		// Only allow full authed calls
 		if ( $this->fullAuth == true ) {
-			// Check for required variables
-			if ( !empty($methodVars['artist']) && !empty($methodVars['track']) && !empty($methodVars['timestamp']) ) {
-				$vars = array(
+			// Check for required variables, array notation may be omitted when only scrobbling a single track
+            if ( (!empty($methodVars['artist[0]']) || !empty($methodVars['artist'])) && (!empty($methodVars['track[0]']) || !empty($methodVars['track'])) && (!empty($methodVars['timestamp[0]']) || !empty($methodVars['timestamp'])) ) {
+				// Check batch size, maximum of 50 scrobbles per batch
+                if (array_key_exists('artist[50]', $methodVars)) {
+                    throw new InvalidArgumentException('Batch size exceed maximum of 50 tracks');
+                }
+
+                $vars = array(
 					'method' => 'track.scrobble',
 					'api_key' => $this->auth->apiKey,
 					'sk' => $this->auth->sessionKey
